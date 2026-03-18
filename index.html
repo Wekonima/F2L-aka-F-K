@@ -191,13 +191,30 @@ max-width:95%;
 max-height:95%;
 }
 
+  #trackerTitle{
+cursor:pointer;
+}
+
+#f2lGallery{
+display:none;
+grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+gap:10px;
+margin-top:20px;
+}
+
+#f2lGallery img{
+width:100%;
+border-radius:8px;
+}
+
 </style>
 </head>
 
 <body>
 
 <h1 id="trackerTitle">F2L Tracker</h1>
-  <img src="images/f2l1.jpeg">
+
+<div id="f2lGallery" style="display:none;"></div>
 
 <div id="f2lGallery"></div>
 
@@ -816,6 +833,35 @@ updatePredictor()
 updateHeatmap()
 renderChat()
 renderProfile()
+
+// EVENT KLIK JUDUL
+let title=document.getElementById("trackerTitle")
+
+title.onclick=function(){
+
+let gallery=document.getElementById("f2lGallery")
+
+if(gallery.style.display==="grid"){
+
+gallery.style.display="none"
+return
+
+}
+
+gallery.style.display="grid"
+gallery.innerHTML=""
+
+for(let i=1;i<=42;i++){
+
+let img=document.createElement("img")
+
+img.src="images/f2l"+i+".png"
+
+gallery.appendChild(img)
+
+}
+
+}
 
 }
 
