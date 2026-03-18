@@ -248,10 +248,10 @@ touch-action:manipulation;
 <div id="imageViewer">
 <img id="viewerImg">
 </div>
-  <button id="openF2L">Show Full F2L</button>
+<button id="openF2L">Show Full F2L</button>
 
 <div id="imageOverlay">
-    <img id="fullF2Limg" src="images/fullf2l.jpeg">
+<img id="fullF2Limg" src="images/fullf2l.jpeg">
 </div>
 
 <div class="topbar">
@@ -889,6 +889,8 @@ updateHeatmap()
 renderChat()
 renderProfile()
 
+document.addEventListener("DOMContentLoaded", init)
+
 // EVENT KLIK JUDUL
 let title=document.getElementById("trackerTitle")
 
@@ -919,9 +921,7 @@ gallery.appendChild(img)
 }
 
 }
-
-document.addEventListener("DOMContentLoaded", init)
-
+  
 </script>
 
 </body>
