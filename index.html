@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>F2L Tracker</title>
+
+<style>
+
+body{
+font-family:system-ui,-apple-system,Segoe UI,Roboto;
+background:#0f172a;
+color:white;
+margin:0;
+padding:20px;
+}
+
+h1{
+text-align:center;
+margin-bottom:10px;
+}
+
+.topbar{
+display:flex;
+gap:10px;
+justify-content:center;
+flex-wrap:wrap;
+margin-bottom:20px;
+}
+
+button{
+background:#2563eb;
+border:none;
+color:white;
+padding:8px 14px;
+border-radius:8px;
+cursor:pointer;
+font-weight:600;
+transition:0.2s;
+}
+
+button:hover{
+background:#1d4ed8;
+}
+
+.container{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:14px;
+}
+
+
+.card{
+background:#1e293b;
+border-radius:12px;
+padding:12px;
+transition:0.2s;
+box-shadow:0 2px 8px rgba(0,0,0,0.2);
+}
+
+.card:hover{
+transform:translateY(-2px);
+}
+
+.caseName{
+color:#60a5fa;
+font-weight:600;
+cursor:pointer;
+}
+
+.status0{
+background:#000000;
+color:white;
+}
+
+.status1{
+background:#9c3e03;
+color:white;
+}
+
+.status2{
+background:#9b9101;
+color:white;
+}
+
+.status3{
+background:#368800;
+color:white;
+}
+
+select{
+margin-top:6px;
+padding:4px;
+border-radius:6px;
+}
+
+.count{
+font-size:13px;
+opacity:0.8;
+margin-top:5px;
+}
+
+#preview{
+position:fixed;
+right:210px;
+bottom:20px;
+width:220px;
+border-radius:10px;
+display:none;
+}
+
+.panel{
+display:none;
+background:#020617;
+padding:16px;
+border-radius:12px;
+margin-top:10px;
+}
+
+#chatBox{
+
+height:200px;
+overflow-y:auto;
+background:#020617;
+border-radius:8px;
+padding:10px;
+margin-bottom:10px;
+
+}
+
+.msg{
+
+background:#1e293b;
+padding:6px;
+border-radius:6px;
+margin-bottom:6px;
+
+}
+
+.chatInputBox{
+
+display:flex;
+gap:8px;
+
+}
+
+#chatInput{
+
+flex:1;
+padding:8px;
+border-radius:6px;
+border:none;
+
+}
+
+.stat{
+margin-bottom:5px;
+}
+
+#trackerTitle{
+cursor:pointer;
+}
+
+#f2lGallery{
+display:none;
+grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+gap:10px;
+margin-top:20px;
+}
+
+#f2lGallery img{
+width:100%;
+border-radius:8px;
+cursor:pointer;
+}
+
+#imageViewer{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.9);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:999;
+}
+
+#viewerImg{
+max-width:95%;
+max-height:95%;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1 id="trackerTitle">F2L Tracker</h1>
+
+<div id="f2lGallery"></div>
+
+<div id="imageViewer">
+<img id="viewerImg">
+</div>
+
+<div class="topbar">
+
+<button onclick="showPage('cases')">Cases</button>
+<button onclick="showPage('tracker')">Tracker</button>
+<button onclick="showPage('trainer')">Trainer</button>
+<button onclick="showPage('stats')">Stats</button>
+<button onclick="showPage('chat')">Chat</button>
+<button onclick="showPage('profile')">Profile</button>
+<button onclick="showPage('detector')">Detector</button>
+
+</div>
+
+<!-- CASE LIST -->
+
+<div id="cases" class="panel" style="display:block">
+<div class="container" id="caseContainer"></div>
+</div>
+
+<!-- TRACKER -->
+
+<div id="tracker" class="panel">
+
+<h3>Case Tracker</h3>
+
+<button onclick="manualRefresh()">Refresh</button>
+
+<div id="trackerList"></div>
+
+</div>
+
+<!-- TRAINER -->
+
+<div id="trainer" class="panel">
+
+<h3>Random F2L Trainer</h3>
+
+<div id="trainerCase">Press Random</div>
+
+<br>
+
+<button onclick="randomCase()">Random Case</button>
+
+</div>
+
+<!-- STATS -->
+
+<div id="stats" class="panel">
+
+<h3>Stats</h3>
+
+<button onclick="manualRefresh()">Refresh</button>
+
+<div id="statsBox"></div>
+
+</div>
+
+<!-- CHAT -->
+
+<div id="chat" class="panel">
+
+<h3>Chat</h3>
+
+<div id="chatBox"></div>
+
+<input id="chatInput" placeholder="message">
+
+<button onclick="sendMsg()">Send</button>
+
+</div>
+
+<!-- PROFILE -->
+
+<div id="profile" class="panel">
+
+<h3>Profile</h3>
+
+<div id="profileBox"></div>
+
+<input id="usernameInput" placeholder="username">
+
+<button onclick="saveUsername()">Save</button>
+
+</div>
+
+<!-- Pdeyect -->
+
+<div id="detector" class="panel">
+
+<h3>F2L Case Detector</h3>
+
+<p>Pilih case yang kamu lihat saat solve</p>
+
+<div id="detectorGrid"></div>
+
+</div>
+
+<!-- Predictor -->
+
+<div id="predictorBox"></div>
+
+<img id="preview">
+
+
+<script>
+
+const caseNames=[
+
+"Pair Ready","Corner Up Edge Front","Corner Up Edge Right","Corner Up Edge Left",
+"Corner Up Edge Back","Edge Flipped Top","Corner Twisted Top","Separated Pair",
+"Hidden Pair","Reverse Pair","Diagonal Pair",
+"Deep Pair","Mirror Pair","Cross Pair","Slot Conflict",
+"Edge Slot Wrong","Corner Slot Wrong","Twisted Pair","Misaligned Pair",
+"Open Pair","Wide Pair","Side Pair","Top Pair",
+"Corner Front Edge Back","Corner Back Edge Front","Corner Left Edge Right",
+"Corner Right Edge Left","Opposite Pair","Front Slot Pair","Right Slot Pair",
+"Left Slot Pair","Back Slot Pair","Top Edge Only","Top Corner Only",
+"Edge Flip Pair","Corner Flip Pair","Mirror Flip Pair","Diagonal Flip Pair",
+"Advanced Pair 1","Advanced Pair 2","Advanced Pair 3","Advanced Pair 4"
+
+]
+
+let data=JSON.parse(localStorage.getItem("f2ldata")||"{}")
+
+let username=localStorage.getItem("username")||"Guest"
+
+const container=document.getElementById("caseContainer")
+
+caseNames.forEach((name,i)=>{
+
+if(!data[i]){
+
+data[i]={
+
+seen:0,
+status:0
+
+}
+
+}
+
+const card=document.createElement("div")
+
+card.className="card"
+
+card.innerHTML=`
+
+<div class="caseName" data-id="${i}">
+${name}
+</div>
+
+<select data-id="${i}" class="status">
+
+<option value="0">Unknown</option>
+<option value="1">Learning</option>
+<option value="2">Comfortable</option>
+<option value="3">Mastered</option>
+
+</select>
+
+<br>
+
+<button data-id="${i}" class="seenBtn">Ketemu</button>
+<button data-id="${i}" class="removeBtn">Hapus</button>
+
+<div class="count">
+ketemu: <span id="count${i}">${data[i].seen}</span>
+</div>
+
+`
+
+container.appendChild(card)
+
+})
+
+document.querySelectorAll(".seenBtn").forEach(btn=>{
+
+btn.onclick=function(){
+
+let id=this.dataset.id
+
+data[id].seen++
+
+document.getElementById("count"+id).innerText=data[id].seen
+
+save()
+
+updateTracker()
+
+updateStats()
+
+}
+
+})
+
+document.querySelectorAll(".removeBtn").forEach(btn=>{
+
+btn.onclick=function(){
+
+let id=this.dataset.id
+
+if(data[id].seen>0){
+
+data[id].seen--
+
+document.getElementById("count"+id).innerText=data[id].seen
+
+save()
+updateTracker()
+updateStats()
+
+}
+
+}
+
+})
+
+document.querySelectorAll(".status").forEach(sel=>{
+
+let id=sel.dataset.id
+
+sel.value=data[id].status
+
+applyStatusColor(sel)
+
+sel.onchange=function(){
+
+data[id].status=parseInt(this.value)
+
+applyStatusColor(this)
+
+save()
+
+updateStats()
+
+}
+
+})
+
+function applyStatusColor(el){
+
+el.classList.remove("status0","status1","status2","status3")
+
+el.classList.add("status"+el.value)
+
+}
+
+document.querySelectorAll(".caseName").forEach(el=>{
+
+let id=el.dataset.id
+
+el.onmouseenter=function(){
+
+let img=document.getElementById("preview")
+
+img.src="images/f2l"+(parseInt(id)+1)+".png"
+
+img.style.display="block"
+
+}
+
+el.onmouseleave=function(){
+
+document.getElementById("preview").style.display="none"
+
+}
+
+})
+
+function save(){
+
+localStorage.setItem("f2ldata",JSON.stringify(data))
+
+}
+
+function showPage(id){
+
+document.querySelectorAll(".panel").forEach(p=>p.style.display="none")
+
+document.getElementById(id).style.display="block"
+
+}
+
+function updateTracker(){
+
+let box = document.getElementById("trackerList")
+
+box.innerHTML = ""
+
+caseNames.forEach((name,i)=>{
+
+if(data[i] && data[i].seen > 0){
+
+let d = document.createElement("div")
+
+d.innerText = name + " | ketemu " + data[i].seen
+
+box.appendChild(d)
+
+}
+
+})
+
+}
+
+function randomCase(){
+
+let id=Math.floor(Math.random()*caseNames.length)
+
+document.getElementById("trainerCase").innerText=caseNames[id]
+
+}
+
+function updateStats(){
+
+let total=0
+let mastered=0
+let learning=0
+
+caseNames.forEach((_,i)=>{
+
+total+=data[i].seen
+
+if(data[i].status==3) mastered++
+if(data[i].status==1) learning++
+
+})
+
+let box=document.getElementById("statsBox")
+
+box.innerHTML=""
+
+box.innerHTML+=`<div class="stat">Total case ditemukan: ${total}</div>`
+box.innerHTML+=`<div class="stat">Learning: ${learning}</div>`
+box.innerHTML+=`<div class="stat">Mastered: ${mastered}</div>`
+
+}
+
+let chat=JSON.parse(localStorage.getItem("chat")||"[]")
+
+function sendMsg(){
+
+let input=document.getElementById("chatInput")
+
+if(!input.value) return
+
+chat.push({
+
+user:username,
+msg:input.value
+
+})
+
+input.value=""
+
+localStorage.setItem("chat",JSON.stringify(chat))
+
+renderChat()
+
+}
+
+function renderChat(){
+
+let box=document.getElementById("chatBox")
+
+box.innerHTML=""
+
+chat.forEach(m=>{
+
+let d=document.createElement("div")
+
+d.className="msg"
+
+d.innerText=m.user+": "+m.msg
+
+box.appendChild(d)
+
+})
+
+}
+
+function saveUsername(){
+
+username=document.getElementById("usernameInput").value
+
+localStorage.setItem("username",username)
+
+renderProfile()
+
+}
+
+function renderProfile(){
+
+document.getElementById("profileBox").innerText="User: "+username
+
+}
+
+function updateHeatmap(){
+
+let max=1
+
+caseNames.forEach((_,i)=>{
+if(data[i].seen>max) max=data[i].seen
+})
+
+caseNames.forEach((_,i)=>{
+
+let card=document.querySelectorAll(".card")[i]
+
+let ratio=data[i].seen/max
+
+let red=Math.floor(255*ratio)
+
+card.style.borderLeft=`6px solid rgb(${red},80,60)`
+
+})
+
+}
+
+function buildDetector(){
+
+let box=document.getElementById("detectorGrid")
+
+caseNames.forEach((name,i)=>{
+
+let btn=document.createElement("button")
+
+btn.innerText=name
+
+btn.onclick=function(){
+
+data[i].seen++
+
+document.getElementById("count"+i).innerText=data[i].seen
+
+save()
+
+updateTracker()
+updateStats()
+updateHeatmap()
+updatePredictor()
+
+}
+
+box.appendChild(btn)
+
+})
+
+}
+
+buildDetector()
+
+let sorted=[...caseNames.keys()].sort((a,b)=>data[b].seen-data[a].seen)
+
+box.innerHTML+="<br><b>Most Seen Cases</b><br>"
+
+sorted.slice(0,5).forEach(i=>{
+
+box.innerHTML+=caseNames[i]+" : "+data[i].seen+"<br>"
+
+})
+
+function updatePredictor(){
+
+let arr=[]
+
+caseNames.forEach((name,i)=>{
+
+if(data[i] && data[i].seen>0){
+
+arr.push({
+name:name,
+count:data[i].seen
+})
+
+}
+
+})
+
+arr.sort((a,b)=>b.count-a.count)
+
+let box=document.getElementById("predictorBox")
+
+box.innerHTML="<br><b>F2L Frequency Predictor</b><br>"
+
+arr.slice(0,5).forEach(c=>{
+
+box.innerHTML+=c.name+" → "+c.count+" times<br>"
+
+})
+
+}
+
+function renderChat(){
+
+let box=document.getElementById("chatBox")
+
+box.innerHTML=""
+
+chat.forEach(m=>{
+
+let d=document.createElement("div")
+
+d.className="msg"
+
+d.innerHTML="<b>"+m.user+"</b>: "+m.msg
+
+box.appendChild(d)
+
+})
+
+box.scrollTop=box.scrollHeight
+
+}
+
+function manualRefresh(){
+
+updateTracker()
+updateStats()
+updatePredictor()
+updateHeatmap()
+
+}
+
+document.addEventListener("DOMContentLoaded", function(){
+
+let title = document.getElementById("trackerTitle")
+
+if(title){
+
+title.onclick=function(){
+
+let gallery=document.getElementById("f2lGallery")
+
+if(gallery.style.display==="none" || gallery.style.display===""){
+
+gallery.style.display="grid"
+
+gallery.style.gridTemplateColumns="repeat(auto-fit,minmax(120px,1fr))"
+
+gallery.innerHTML=""
+
+for(let i=1;i<=42;i++){
+
+let img=document.createElement("img")
+
+img.src="images/f2l"+i+".png"
+
+img.style.width="100%"
+img.style.borderRadius="6px"
+
+gallery.appendChild(img)
+
+}
+
+}else{
+
+gallery.style.display="none"
+
+}
+
+}
+
+}
+
+})
+
+document.getElementById("trackerTitle").onclick=function(){
+
+let gallery=document.getElementById("f2lGallery")
+
+if(gallery.style.display==="grid"){
+
+gallery.style.display="none"
+return
+
+}
+
+gallery.style.display="grid"
+
+gallery.innerHTML=""
+
+for(let i=1;i<=42;i++){
+
+let img=document.createElement("img")
+
+img.src="images/fullf2l"+i+".png"
+
+img.onclick=function(){
+
+let viewer=document.getElementById("imageViewer")
+let viewerImg=document.getElementById("viewerImg")
+
+viewer.style.display="flex"
+viewerImg.src=this.src
+
+}
+
+gallery.appendChild(img)
+
+}
+
+}
+
+function init(){
+
+updateTracker()
+updateStats()
+updatePredictor()
+updateHeatmap()
+renderChat()
+renderProfile()
+
+}
+
+document.addEventListener("DOMContentLoaded", init)
+
+</script>
+
+</body>
+</html>
